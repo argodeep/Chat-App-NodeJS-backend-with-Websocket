@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<title>Web Socket Chat</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
+<style>
+body, html {
+  font-family: "Inconsolata", sans-serif;
+}
+</style>
+<body>
+    <h3 class="w3-margin w3-center">Messages</h3>
+    <!-- <p id="root" class="w3-margin w3-center"></p> -->
+    <!-- <div id="messages" class="w3-margin">
+        <div style="width: 100%">
+            <h6 class="w3-left-align" style="font-weight: bold">Server</h6>
+            <p class="w3-left-align">Message Content</p>
+        </div>
+        <div style="width: 100%">
+            <h6 class="w3-right-align" style="font-weight: bold">Client</h6>
+            <p class="w3-right-align">Message Content</p>
+        </div>
+    </div> -->
+    <form class="w3-margin" id="chatForm">
+      <p><input class="w3-input w3-padding-16 w3-border" autocomplete="off" type="text" placeholder="Type Message" required name="message" id="message"></p>
+      <p><button class="w3-button w3-black" style="float: right" type="button" onclick="onSubmit()">SEND MESSAGE</button></p>
+    </form>
+<script> 
+  // const WebSocket = require('ws');
+  const socket = 8080;
+  const url = 'ws://localhost:' + socket;
+  const connection = new WebSocket(url);
+  let messages = [];
+  sender = [];
+  senderMessage = [];
+  receiver = [];
+  receiverMessage =[];
+  let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1Y2ViNmJkZDkxM2JjMDE2ZTA3NzAwOTUiLCJyb2xlIjoidXNlciIsImlhdCI6MTU2MzE5NTMwOCwiZXhwIjozNjAwMDE1NjMxOTUzMDh9.H3Jra6ZAmHbrAQQoX07d3z9l5dlUMA-C3fv-Y6kyUUE';
+  let roomId = '5d31717f6d6b5521ec9b916f';  
+  
+  connection.onopen = () => {
+    let account = {
+      token: token,
+      roomId: roomId,
+      type: 'GET',
+      segment: 'messages'
+    }
+    connection.send(JSON.stringify(account));
+    connection.onmessage = (e) => {
+      let data = JSON.parse(e.data);
+      if (typeof data  === "object") {
+        if (data.chat) {
+          messages = data.chat;
+          console.log(messages);
+        }
+        if (data.message) {
+          console.log(data.message);
+        }
+        if (data.status) {
+          console.log(data.status);
+          let account = {
+            token: token,
+            roomId: roomId,
+            type: 'GET',
+            segment: 'messages'
+          }
+          connection.send(JSON.stringify(account));
+        }
+        
+      }
+    }
+  };
+
+  connection.onclose = (evt) => {
+    console.log("Connection closed.");
+  }; 
+  
+  connection.onerror = (error) => {
+    console.log(`WebSocket error: ${error}`)
+  }
+  
+  onSubmit = () => {
+    if(document.getElementById("message").value === '') {
+      alert("Please Type Any Message");
+    } else {
+      let message = {
+	        to: ["5ceb6be1913bc016e0770096"],
+	        hide: [],
+	        body: {
+            type: "text",
+            content: document.getElementById("message").value,
+            modified: false
+          },
+          token: token,
+          roomId: roomId,
+          type: 'POST',
+          segment: 'sendMessage'
+      }
+      connection.send(JSON.stringify(message));
+      document.getElementById("message").value = '';
+    }
+  }
+</script>
+</body>
+</html>
